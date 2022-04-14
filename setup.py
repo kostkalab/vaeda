@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vaeda",
-    version="0.0.2",
+    version="0.0.7",
     author="Hannah Schriever",
     author_email="hcs31@pitt.edu",
     packages=["vaeda"],
@@ -15,6 +15,6 @@ setuptools.setup(
     url="https://github.com/kostkalab/vaeda",
     license='MIT',
     python_requires='>=3.8',
-    install_requires=['numpy', 'tensorflow', 'scipy', 'pathlib', 'pandas', 'matplotlib', 'random', 'sklearn', 'kneed', 'scanpy', 'anndata']
+    install_requires=['numpy', 'tensorflow', 'scipy', 'scikit-learn', 'kneed', 'anndata']
 )
 

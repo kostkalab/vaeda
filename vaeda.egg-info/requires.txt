@@ -1,11 +1,6 @@
 numpy
 tensorflow
 scipy
-pathlib
-pandas
-matplotlib
-random
-sklearn
+scikit-learn
 kneed
-scanpy
 anndata
