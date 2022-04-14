@@ -1,16 +1,16 @@
 import numpy as np
 import scipy.sparse as scs
-from scipy.stats import multinomial
+#from scipy.stats import multinomial
 import pathlib as pl
-import pandas as pd
-import matplotlib.pyplot as plt
-from scipy.io import mmread
+#import pandas as pd
+#import matplotlib.pyplot as plt
+#from scipy.io import mmread
 
-from os import listdir
-from os.path import isfile, join
-import os
+#from os import listdir
+#from os.path import isfile, join
+#import os
 
-import random
+#import random
 
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
@@ -19,14 +19,14 @@ import seaborn as sns
 
 from sklearn.preprocessing import StandardScaler
 
-import random
-from sklearn import metrics
-from sklearn.metrics import precision_recall_curve, accuracy_score, average_precision_score
+#import random
+#from sklearn import metrics
+#from sklearn.metrics import precision_recall_curve, accuracy_score, average_precision_score
 
 
 import tensorflow as tf
 
-import os
+#import os
 import pickle
 
 from sklearn.model_selection import train_test_split
@@ -35,21 +35,20 @@ from kneed import KneeLocator
 
 from numpy.random import seed
 
-import time
-import scanpy as sc
-import anndata
+#import time
+#import scanpy as sc
+#import anndata
 from scipy.signal import savgol_filter
 import math
 
 
 
 
-from plot_results import get_dbl_metrics
-from vae import define_clust_vae
-from PU import PU, epoch_PU, epoch_PU2
-from classifier import define_classifier
-from mk_doublets import sim_inflate, sim_avg, sim_sum
-from cluster import cluster, fast_cluster
+from .vae import define_clust_vae
+from .PU import PU, epoch_PU, epoch_PU2
+from .classifier import define_classifier
+from .mk_doublets import sim_inflate, sim_avg, sim_sum
+from .cluster import cluster, fast_cluster
 
 
 
@@ -67,9 +66,9 @@ def vaeda(X, save_dir='',
     
     
     #-time each step
-    time_names = ['total', 'simulation', 'HVGs', 'scaling1', 'knn', 'downsample', 'scaling2', 'cluster', 'vae', 'epoch_selection', 'PU_loop']
-    tmp1 = np.copy(np.zeros((1, len(time_names))))
-    time_df = pd.DataFrame(tmp1, index=['time'], columns=time_names)
+    #time_names = ['total', 'simulation', 'HVGs', 'scaling1', 'knn', 'downsample', 'scaling2', 'cluster', 'vae', 'epoch_selection', 'PU_loop']
+    #tmp1 = np.copy(np.zeros((1, len(time_names))))
+    #time_df = pd.DataFrame(tmp1, index=['time'], columns=time_names)
 
     
     #Filter genes
@@ -86,7 +85,7 @@ def vaeda(X, save_dir='',
     
     npz_sim  = pl.Path(npz_sim_path)
 
-    total_start = time.perf_counter()
+    #total_start = time.perf_counter()
     
     if (npz_sim.exists() & use_old):
         print('loading in sim npz')
@@ -100,12 +99,12 @@ def vaeda(X, save_dir='',
     else:
         print('generating new sim npz')
 
-        start = time.perf_counter()
+        #start = time.perf_counter()
         
         Xs, ind1, ind2 = sim_inflate(X)
-        stop = time.perf_counter()
+        #stop = time.perf_counter()
 
-        time_df.simulation = stop - start
+        #time_df.simulation = stop - start
         
         dat_sim = scs.csr_matrix(Xs) 
         
@@ -123,15 +122,15 @@ def vaeda(X, save_dir='',
     
     #- HVGs
     if(X.shape[1] > num_hvgs):
-        start = time.perf_counter()
+        #start = time.perf_counter()
 
         var = np.var(X, axis=0)
         np.random.seed(3900362577)
         hvgs = np.argpartition(var, -num_hvgs)[-num_hvgs:]  
 
-        stop = time.perf_counter()
+        #stop = time.perf_counter()
 
-        time_df.HVGs = stop - start
+        #time_df.HVGs = stop - start
 
         X = X[:,hvgs]
 
@@ -142,7 +141,7 @@ def vaeda(X, save_dir='',
     #HYPERPARAMS
     neighbors = int(np.sqrt(X.shape[0]))
 
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     #SCALING
     temp_X = np.log2(X+1)
@@ -151,12 +150,12 @@ def vaeda(X, save_dir='',
     np.random.seed(42)
     temp_X = scaler.transform(temp_X.T).T
 
-    stop = time.perf_counter()
-    time_df.scaling1 = stop - start
+    #stop = time.perf_counter()
+    #time_df.scaling1 = stop - start
     
     
     #KNN
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     np.random.seed(42)
     pca = PCA(n_components=pca_comp)
@@ -169,11 +168,11 @@ def vaeda(X, save_dir='',
     graph = knn.kneighbors_graph(pca_proj)
     knn_feature = np.squeeze(np.array(np.sum(graph[:,Y==1], axis=1) / neighbors)) #sum across rows
 
-    stop = time.perf_counter()
-    time_df.knn = stop - start
+    #stop = time.perf_counter()
+    #time_df.knn = stop - start
     
     
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     #estimate true faction of doublets 
     quantile = np.quantile(knn_feature[Y==1], quant)
@@ -196,11 +195,11 @@ def vaeda(X, save_dir='',
     Y = Y[enc_ind]
     knn_feature = knn_feature[enc_ind]
     
-    stop = time.perf_counter()
-    time_df.downsample = stop - start
+    #stop = time.perf_counter()
+    #time_df.downsample = stop - start
 
     
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     #re-scale
     X = np.log2(X+1)
@@ -209,22 +208,22 @@ def vaeda(X, save_dir='',
     np.random.seed(42)
     X = scaler.transform(X.T).T
     
-    stop = time.perf_counter()
-    time_df.scaling2 = stop - start
+    #stop = time.perf_counter()
+    #time_df.scaling2 = stop - start
     
     #######################################################
     ####################### CLUSTER #######################
     #######################################################
     
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     if(X.shape[0]>=1000):
         clust = fast_cluster(X, comp=pca_comp)
     else:
         clust = cluster(X, comp=pca_comp)
         
-    stop = time.perf_counter()
-    time_df.cluster = stop - start
+    #stop = time.perf_counter()
+    #time_df.cluster = stop - start
     
     
     if(remove_homos):
@@ -272,7 +271,7 @@ def vaeda(X, save_dir='',
         print('generating new VAE encoding')
         made_new=True
         
-        start = time.perf_counter()
+        #start = time.perf_counter()
         
         tf.random.set_seed(seeds[1])
         vae = define_clust_vae(enc_sze, ngens, clust.max()+1, LR=LR_vae, clust_weight=clust_weight)
@@ -304,8 +303,8 @@ def vaeda(X, save_dir='',
         tf.random.set_seed(seeds[2])
         encoding = np.array(tf.convert_to_tensor(encoder(X)))
         
-        stop = time.perf_counter()
-        time_df.vae = stop - start
+        #stop = time.perf_counter()
+        #time_df.vae = stop - start
 
         if(len(save_dir)>0):
             np.save(vae_path_real, encoding[Y==0,:])
@@ -334,7 +333,7 @@ def vaeda(X, save_dir='',
     if(k<2):
         k=2
     
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     hist = epoch_PU2(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU)
             
@@ -364,28 +363,24 @@ def vaeda(X, save_dir='',
 
     print('KNEE:', knee)   
         
-    stop = time.perf_counter()
-    time_df.epoch_selection = stop - start
+    #stop = time.perf_counter()
+    #time_df.epoch_selection = stop - start
 
-    start = time.perf_counter()
+    #start = time.perf_counter()
     
     ##new v
     #tf.config.optimizer.set_jit(True)
     preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, seeds=seeds[3:], puLR=LR_PU)
     ##new ^
     
-    stop = time.perf_counter()
-    time_df.PU_loop = stop - start
+    #stop = time.perf_counter()
+    #time_df.PU_loop = stop - start
     
-    total_stop = time.perf_counter()
+    #total_stop = time.perf_counter()
     
-    time_df.total = total_stop - total_start
+    #time_df.total = total_stop - total_start
     
-    print(time_df)
-    
-    if(len(save_dir)>0):
-        print('saving time df ', time_df)
-        time_df.to_csv(save_dir + 'time.csv')
+    #print(time_df)
     
 
     if(len(save_dir)>0):
