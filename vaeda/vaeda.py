@@ -117,7 +117,7 @@ def vaeda(X, save_dir='',
     
     #Filter genes
     thresh = np.floor(X.shape[0]) * gene_thresh
-    tmp    = np.sum((X>0), axis=0)>tresh
+    tmp    = np.sum((X>0), axis=0)>thresh
     if (np.sum(tmp) >= num_hvgs):
         X = X[:,tmp]
     
