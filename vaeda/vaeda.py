@@ -45,9 +45,9 @@ import math
 
 
 from .vae import define_clust_vae
-from .PU import PU, epoch_PU, epoch_PU2
+from .PU import PU, epoch_PU
 from .classifier import define_classifier
-from .mk_doublets import sim_inflate, sim_avg, sim_sum
+from .mk_doublets import sim_inflate
 from .cluster import cluster, fast_cluster
 
 
@@ -335,7 +335,7 @@ def vaeda(X, save_dir='',
     
     #start = time.perf_counter()
     
-    hist = epoch_PU2(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU)
+    hist = epoch_PU(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU)
             
     y=np.log(hist.history['loss'])
     x=np.arange(len(y))
