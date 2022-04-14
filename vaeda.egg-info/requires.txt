@@ -9,4 +9,3 @@ sklearn
 kneed
 scanpy
 anndata
-math
