@@ -1,0 +1,12 @@
+numpy
+tensorflow
+scipy
+pathlib
+pandas
+matplotlib
+random
+sklearn
+kneed
+scanpy
+anndata
+math
