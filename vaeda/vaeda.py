@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
-import pickle
+#import pickle
 from sklearn.model_selection import train_test_split
 from kneed import KneeLocator
 from numpy.random import seed
