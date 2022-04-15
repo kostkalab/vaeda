@@ -1,6 +1,6 @@
 # vaeda
 
-vaeda (variaitonal auto-encoder (vae) for doublet annotation (da)) is a python package for doublet annotation in single cell RNA-sequencing. For method details and comparisons to alternative doublet annotation tools, see our manuscript XXXX.
+vaeda (variaitonal auto-encoder (vae) for doublet annotation (da)) is a python package for doublet annotation in single cell RNA-sequencing. For method details and comparisons to alternative doublet annotation tools, see our [pre-print](https://biorxiv.org/cgi/content/short/2022.04.15.488440v1).
 
 #### Installation
 
