@@ -1,7 +1,5 @@
 #- classifier
-#from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
-#import tensorflow_probability as tfp
 import numpy as np
     
 
@@ -11,8 +9,6 @@ def define_classifier(ngens, seed=1, num_layers=1):
     
     tfk  = tf.keras
     tfkl = tf.keras.layers
-    #tfpl = tfp.layers
-    #tfd  = tfp.distributions
     
     if(num_layers==1):
         classifier = tfk.Sequential([

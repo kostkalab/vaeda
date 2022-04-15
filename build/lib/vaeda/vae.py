@@ -1,5 +1,4 @@
 #- vae
-#from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
 import tensorflow_probability as tfp
 import numpy as np
@@ -16,10 +15,10 @@ def define_clust_vae(enc_sze, ngens, num_clust, LR=1e-3, clust_weight=10000):
     
     encoder = tfk.Sequential([
         tfkl.InputLayer(input_shape=[ngens]),
-        tfkl.Dense(256, activation='relu'),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[0])),
+        tfkl.Dense(256, activation='relu'),
         tfkl.BatchNormalization(),
         tfkl.Dropout(rate=0.3),
-        tfkl.Dense(tfpl.IndependentNormal.params_size(enc_sze), activation=None),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[1])),
+        tfkl.Dense(tfpl.IndependentNormal.params_size(enc_sze), activation=None),
         tfpl.IndependentNormal(
             enc_sze,
             activity_regularizer=tfpl.KLDivergenceRegularizer(prior)
@@ -28,17 +27,17 @@ def define_clust_vae(enc_sze, ngens, num_clust, LR=1e-3, clust_weight=10000):
 
     decoder = tfk.Sequential([
         tfkl.InputLayer(input_shape=[enc_sze]),
-        tfkl.Dense(256, activation='relu'),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[2])),
+        tfkl.Dense(256, activation='relu'),
         tfkl.BatchNormalization(),
         tfkl.Dropout(rate=0.3),
-        tfkl.Dense(tfpl.IndependentNormal.params_size(ngens), activation=None),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[3])),
+        tfkl.Dense(tfpl.IndependentNormal.params_size(ngens), activation=None),
         tfpl.IndependentNormal(ngens)
     ], name='decoder')
 
     clust_classifier = tfk.Sequential([
         tfkl.InputLayer(input_shape=[enc_sze]),
         tfkl.BatchNormalization(),
-        tfkl.Dense(num_clust, activation='sigmoid')#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seed)),
+        tfkl.Dense(num_clust, activation='sigmoid')
     ], name='clust_classifier')
     
     IPT     = tfk.Input(shape = ngens)
@@ -56,11 +55,9 @@ def define_clust_vae(enc_sze, ngens, num_clust, LR=1e-3, clust_weight=10000):
     vae.compile(optimizer = tf.optimizers.Adamax(learning_rate=LR),#Adam, 1e-3
                   loss=[nll, 'categorical_crossentropy'], loss_weights=[1,clust_weight])
   
-    #1e-3
     return vae
 
     
-#vae_embeddings_schedules_adamax_5
 def define_vae(enc_sze, ngens):
     
     tfk  = tf.keras
@@ -73,10 +70,10 @@ def define_vae(enc_sze, ngens):
     
     encoder = tfk.Sequential([
         tfkl.InputLayer(input_shape=[ngens]),
-        tfkl.Dense(256, activation='relu'),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[0])),
+        tfkl.Dense(256, activation='relu'),
         tfkl.BatchNormalization(),
         tfkl.Dropout(rate=0.3),
-        tfkl.Dense(tfpl.IndependentNormal.params_size(enc_sze), activation=None),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[1])),
+        tfkl.Dense(tfpl.IndependentNormal.params_size(enc_sze), activation=None),
         tfpl.IndependentNormal(
             enc_sze,
             activity_regularizer=tfpl.KLDivergenceRegularizer(prior)
@@ -85,10 +82,10 @@ def define_vae(enc_sze, ngens):
 
     decoder = tfk.Sequential([
         tfkl.InputLayer(input_shape=[enc_sze]),
-        tfkl.Dense(256, activation='relu'),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[2])),
+        tfkl.Dense(256, activation='relu'),
         tfkl.BatchNormalization(),
         tfkl.Dropout(rate=0.3),
-        tfkl.Dense(tfpl.IndependentNormal.params_size(ngens), activation=None),#, kernel_initializer=tf.keras.initializers.GlorotUniform(seed=seeds[3])),
+        tfkl.Dense(tfpl.IndependentNormal.params_size(ngens), activation=None),
         tfpl.IndependentNormal(ngens)
     ], name='decoder')
 
@@ -106,7 +103,7 @@ def define_vae(enc_sze, ngens):
     
     vae.compile(optimizer = tf.optimizers.Adamax(learning_rate=1e-3),#Adam
                   loss=nll)
-    #1e-3
+
     return vae
 
 

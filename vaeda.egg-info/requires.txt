@@ -4,3 +4,5 @@ scipy
 scikit-learn
 kneed
 anndata
+tensorflow_probability
+scanpy>1.3.3
