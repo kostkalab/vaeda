@@ -10,11 +10,11 @@ You can install vaeda using pip as follows:
 conda create -n vaeda_env python=3.8
 conda activate vaeda_env
 
-conda install -c conda-forge tensorflow=2.4.0
-pip install --upgrade tensorflow-probability==0.12.2
-conda install -c bioconda scanpy=1.7.2
-pip install typing-extensions==3.7.4 absl-py==0.10 six==1.15.0 wrapt==1.12.1 xlrd==1.2.0
-pip install -i https://test.pypi.org/simple/ vaeda==0.0.17
+pip3 install --upgrade tensorflow==2.8.0
+pip3 install --upgrade tensorflow-probability==0.16.0
+pip3 install 'scanpy[leiden]'==1.8.0
+pip3 install typing-extensions==3.7.4 absl-py==0.10 six==1.15.0 wrapt==1.12.1 xlrd==1.2.0
+pip3 install -i https://test.pypi.org/simple/ vaeda==0.0.17
 ```
 
 #### Quick Start
