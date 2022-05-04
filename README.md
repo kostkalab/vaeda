@@ -4,7 +4,7 @@ vaeda (variaitonal auto-encoder (vae) for doublet annotation (da)) is a python p
 
 #### Installation
 
-You can install vaeda using pip as follows:
+You can install ```vaeda``` using conda and pip as follows:
 
 ```
 conda create -n vaeda_env python=3.8
@@ -35,12 +35,15 @@ Where:
 * encoding is the low dimensional latent representation of the input data learned by vaeda's variational auto-encoder
 * knn_feature are the preliminary knn scores on the input data X
 
-#### Other doublet detection tools:
+#### More detailed example
+
+For a more detailed and accessible example, see ```./doc/vaeda_scanpy-pbmc3k-tutorial.ipynb```, where we modified a tutorial from ```scanpy``` [(https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html)](https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html) to illustrate how to use ```vaeda``` for doublet annotation.
+
+
+#### Other doublet detection tools
 
 * [scds](https://github.com/kostkalab/scds)
 * [scDblFInder](https://github.com/plger/scDblFinder)
 * [DoubletFinder](https://github.com/chris-mcginnis-ucsf/DoubletFinder)
 * [Scrublet](https://github.com/AllonKleinLab/scrublet)
 * [solo](https://github.com/calico/Solo)
-
-
