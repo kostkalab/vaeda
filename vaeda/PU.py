@@ -69,9 +69,6 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
                                       use_multiprocessing=True)
 
             else:
-                if(verbose!=0):
-                    print('not enough cells for train test split')
-                    print("pat: " + str(puPat))
                     
                 ind = np.arange(X.shape[0])
                 if(seeds):

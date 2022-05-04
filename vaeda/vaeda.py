@@ -20,16 +20,83 @@ from .mk_doublets import sim_inflate
 from .cluster import cluster, fast_cluster
 
 
-def vaeda(X, save_dir='', verbose=0,
+
+
+def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
           gene_thresh=.01, num_hvgs=2000,
           pca_comp=30, quant=0.25,
           enc_sze=5, max_eps_vae=1000, pat_vae=20, LR_vae=1e-3, clust_weight=20000, rate=-0.75,
           N=1, k_mult=2, max_eps_PU=250, LR_PU=1e-3,
-          remove_homos=True, use_old=True,
-          reproducable=True):
+          remove_homos=True, use_old=False,
+          seed=None):
+    """
+    Parameters
+    ----------
+    adata: anndata object
+        raw counts stored in adata.X
+    filter_genes: bool, optional
+        if True, vaeda will select the 2000 most variable genes. if False, no gene filtering occurs. If set to false, it is recomended that genes are filtered before calling vaeda. (default is True)
+    verbose: 'auto', 0, 1, or 2, optional
+        verbosity argument passed to tensorflow model.fit functions. (default is 0)
+    save_dir: str, optional
+        if not None, location to where intermediate steps of vaeda are saved. (use for debugging or when use_old=True) (default=None)
+    gene_thresh: float, optional
+        Threshold used to filter genes. Genes extressed in <= (gene_thresh*number_of_cells) cells are filtered out. (default is 0.01)
+    num_hvgs: int, optional
+        The number of highly variable genes that are selected to be used in doublet annotation. (default is 2000)
+    pca_comp: int, optional
+        Number of pricipal compontents used for PCA reductions. (default is 30)
+    quant: float, optional
+        Quantile used for initial estimate of number of doublets. (default is 0.25)
+    enc_sze: int, optional
+        Size of the encoding leaned by vaeda. (default is 5)
+    max_eps_vae: int, optional
+        Maximum number of epochs used to train the variational auto encoder. Specifically, the vae will train until teh early stopping criteria is met or max_eps_vae, whichever is first. (default is 1000)
+    pat_vae: int, optional
+        Number of epochs with no improvement after which VAE training will be stopped. (default is 20)
+    LR_vae: float, optional
+        Learning rate for the VAE (default is 1e-3)
+    clust_weight: float, optional
+        Weight for the binary cross entropy loss of cluster classifier in the total VAE loss. (default is 20000)
+    rate: float, optional
+        Rate at which the VAE loss decays after epoch 3. (default is -0.75)
+    N: int, optional
+        Number of times to repeat the PU loop. (default is 1)
+    k_mult: float, optional
+        Factor that dtermines the ratio of U and P sizes. U.shape[0] = P.shape[0]*k_mult (default is 2)
+    max_eps_PU: int, optional
+        Number of epochs to train the epoch selection round of PU learning. (default is 250)
+    LR_PU: float, optional
+        Learning rate for the doublet classifier. (default is 1e-3)
+    remove_homos: bool, optional
+        If True, simulated doublets made from cells of the same cluster are removed before training. If False, simulated doublets made from cells of the same cluster are left in. (default is True)
+    use_old: bool, optional
+        If true, data from previous runs will be used. save_dir must also be set to use this feature. (default is False)
+    seed: int, optional
+        seed for generating reproducable results. (default is None)
     
-    if(reproducable):
-        seeds=[42, 29503, 432809, 42, 132975, 9231996, 12883823, 9231996, 1234, 62938, 57203 ,109573, 23]
+    Returns
+    -------
+    anndata
+        the origional anndata object with the encoding stored in adata.obsm['vaeda_embedding'] and the 
+        adata.obs['vaeda_scores'] = preds
+    adata.obs['vaeda_calls']  = calls
+    adata.obsm['vaeda_embedding'] = encoding[Y==0,:]
+        doublet probabilities and calls.
+    """
+    
+    
+    if(seed is not None):
+        np.random.seed(seed)
+        seeds = np.random.randint(0, high=sys.maxsize, size=13)
+    else:
+        seeds = np.random.randint(0, high=sys.maxsize, size=13)
+        
+    if (save_dir is None):
+        use_old = False
+        
+    X = np.array(adata.X.todense())    
+        
     
     #######################################################
     ######################### SIM #########################
@@ -55,26 +122,28 @@ def vaeda(X, save_dir='', verbose=0,
         Xs, ind1, ind2 = sim_inflate(X)        
         dat_sim = scs.csr_matrix(Xs) 
         
-        if(len(save_dir)>0):
+        if(save_dir is not None):
             scs.save_npz(npz_sim_path,dat_sim) 
             np.save(sim_ind_path, np.vstack([ind1,ind2]))
 
     Y = np.concatenate([np.zeros(X.shape[0]), np.ones(Xs.shape[0])])
     X = np.vstack([X,Xs])
     
-    #Filter genes
-    thresh = np.floor(X.shape[0]) * gene_thresh
-    tmp    = np.sum((X>0), axis=0)>thresh
-    if (np.sum(tmp) >= num_hvgs):
-        X = X[:,tmp]
-    
-    #- HVGs
-    if(X.shape[1] > num_hvgs):
-        var = np.var(X, axis=0)
-        if(reproducable):
-            np.random.seed(3900362577)
-        hvgs = np.argpartition(var, -num_hvgs)[-num_hvgs:]  
-        X = X[:,hvgs]
+    if (filter_genes):
+        #Filter genes
+        thresh = np.floor(X.shape[0]) * gene_thresh
+        tmp    = np.sum((X>0), axis=0)>thresh
+        if (np.sum(tmp) >= num_hvgs):
+            X = X[:,tmp]
+
+        #- HVGs
+        if(X.shape[1] > num_hvgs):
+            var = np.var(X, axis=0)
+            #if(reproducable):
+            #    np.random.seed(3900362577)
+            np.random.seed(seeds[0]) #*
+            hvgs = np.argpartition(var, -num_hvgs)[-num_hvgs:]  
+            X = X[:,hvgs]
 
     #######################################################
     ######################### KNN #########################
@@ -88,14 +157,12 @@ def vaeda(X, save_dir='', verbose=0,
     scaler = StandardScaler().fit(temp_X.T)
     temp_X = scaler.transform(temp_X.T).T
     
-    if(reproducable):
-        np.random.seed(42)
+    np.random.seed(seeds[1]) #*
     pca = PCA(n_components=pca_comp)
     pca_proj = pca.fit_transform(temp_X)
     del(temp_X)
     
-    if(reproducable):
-        np.random.seed(42)
+    np.random.seed(seeds[2]) #*
     knn = NearestNeighbors(n_neighbors=neighbors)
     knn.fit(pca_proj,Y)
     graph = knn.kneighbors_graph(pca_proj)
@@ -110,8 +177,7 @@ def vaeda(X, save_dir='', verbose=0,
     estimated_doub_num = num
     
     prob = knn_feature[Y==1] / np.sum(knn_feature[Y==1])
-    if(reproducable):
-        np.random.seed(seeds[0])
+    np.random.seed(seeds[3])
     ind = np.random.choice(np.arange(sum(Y==1)), size=num, p=prob, replace=False)
     
     #downsample the simulated doublets
@@ -122,11 +188,9 @@ def vaeda(X, save_dir='', verbose=0,
     
     #re-scale
     X = np.log2(X+1)
-    if(reproducable):
-        np.random.seed(42)
+    np.random.seed(seeds[4]) #*
     scaler = StandardScaler().fit(X.T)
-    if(reproducable):
-        np.random.seed(42)
+    np.random.seed(seeds[5]) #*
     X = scaler.transform(X.T).T
     
     #######################################################
@@ -142,7 +206,7 @@ def vaeda(X, save_dir='', verbose=0,
 
         hetero_ind = c[ind1] != c[ind2]
         hetero_ind = hetero_ind[ind] #becasue down sampled
-        if(len(save_dir)>0):
+        if(save_dir is not None):
             np.save(save_dir + 'which_sim_doubs.npy', ind[hetero_ind])
         
         hetero_ind = np.concatenate([np.full(sum(Y==0), True), hetero_ind])
@@ -153,7 +217,7 @@ def vaeda(X, save_dir='', verbose=0,
         knn_feature = knn_feature[hetero_ind]
         
     else:
-        if(len(save_dir)>0):
+        if(save_dir is not None):
             np.save(save_dir + 'which_sim_doubs.npy', ind)
         
     
@@ -181,8 +245,7 @@ def vaeda(X, save_dir='', verbose=0,
             print('generating VAE encoding')
         made_new=True
         
-        if(reproducable):
-            tf.random.set_seed(seeds[1])
+        tf.random.set_seed(seeds[6])
         vae = define_clust_vae(enc_sze, ngens, clust.max()+1, LR=LR_vae, clust_weight=clust_weight)
 
         callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
@@ -209,11 +272,10 @@ def vaeda(X, save_dir='', verbose=0,
                        verbose=verbose)
 
         encoder = vae.get_layer('encoder')
-        if(reproducable):
-            tf.random.set_seed(seeds[2])
+        tf.random.set_seed(seeds[7])
         encoding = np.array(tf.convert_to_tensor(encoder(X)))
 
-        if(len(save_dir)>0):
+        if(save_dir is not None):
             np.save(vae_path_real, encoding[Y==0,:])
             np.save(vae_path_sim, encoding[Y==1,:])
 
@@ -222,7 +284,7 @@ def vaeda(X, save_dir='', verbose=0,
     ######################### PU ##########################
     #######################################################
     
-    if(len(save_dir)>0):
+    if(save_dir is not None):
         np.save(save_dir + 'knn_feature_real.npy', knn_feature[Y==0])
         np.save(save_dir + 'knn_feature_sim.npy', knn_feature[Y==1])
         np.save(save_dir + 'clusters_real.npy', clust[Y==0])
@@ -242,10 +304,7 @@ def vaeda(X, save_dir='', verbose=0,
     if(k<2):
         k=2
     
-    if(reproducable):
-        hist = epoch_PU(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU, verbose=verbose)
-    else:
-        hist = epoch_PU(U, P, k, N, 250, puLR=LR_PU, verbose=verbose)
+    hist = epoch_PU(U, P, k, N, max_eps_PU, seeds=seeds[8:], puLR=LR_PU, verbose=verbose)#seeds 8-12
             
     y=np.log(hist.history['loss'])
     x=np.arange(len(y))
@@ -270,12 +329,9 @@ def vaeda(X, save_dir='', verbose=0,
     elif knee>250:
         knee = 250
     
-    if(reproducable):
-        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, seeds=seeds[3:], puLR=LR_PU, verbose=verbose)
-    else:
-        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, puLR=LR_PU, verbose=verbose)
+    preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, seeds=seeds[8:], puLR=LR_PU, verbose=verbose)
 
-    if(len(save_dir)>0):
+    if(save_dir is not None):
         np.save(save_dir + 'scores.npy', preds)
         np.save(save_dir + 'scores_on_sim.npy', preds_on_P)
   
@@ -315,13 +371,17 @@ def vaeda(X, save_dir='', verbose=0,
     
     calls = np.full(len(preds), 'singlet')
     calls[call_mask] = 'doublet'
-    if(len(save_dir)>0):
+    if(save_dir is not None):
         if(verbose!=0):
             print('saving calls')
         np.save(save_dir + 'doublet_calls.npy', calls)
     
-    return preds, preds_on_P, calls, encoding_keep, knn_feature
-
+    adata.obs['vaeda_scores'] = preds
+    adata.obs['vaeda_calls']  = calls
+    adata.obsm['vaeda_embedding'] = encoding[Y==0,:]
+    
+    #return preds, preds_on_P, calls, encoding_keep, knn_feature
+    return adata
 
 def log_norm(x, mean, sd):
     t1 = -np.log(sd*np.sqrt(2*math.pi))
