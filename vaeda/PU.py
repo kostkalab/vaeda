@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from .classifier import define_classifier
 
-def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC'):
+def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
     if (seeds):
         random_state = seeds[0]
@@ -29,8 +29,9 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
     for test, train in rkf.split(U):
         
         i = i + 1
-        print('')
-        print(str(i) + '/' + str(N*k) + ' itterations')
+        if(verbose!=0):
+            print('')
+            print(str(i) + '/' + str(N*k) + ' itterations')
         
         X = np.vstack([U[train,:], P])
         Y = np.concatenate([np.zeros([len(train)]),
@@ -68,26 +69,10 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
                                       use_multiprocessing=True)
 
             else:
-                
-                print('not enough cells for train test split')
-                print("pat: " + str(puPat))
-                if (stop_metric == 'ValAUC'):
-                    print('using AUC')
+                if(verbose!=0):
+                    print('not enough cells for train test split')
+                    print("pat: " + str(puPat))
                     
-                    callback = tf.keras.callbacks.EarlyStopping(monitor='auc', 
-                                                                mode = 'max',
-                                                                min_delta=0.0, 
-                                                                patience=puPat,#was 10
-                                                                restore_best_weights=True)#was F
-                    
-                elif (stop_metric == 'ValLoss'):
-                    print('using Loss')
-                    
-                    callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
-                                                                mode = 'min',
-                                                                min_delta=0.0, 
-                                                                patience=puPat,#was 10
-                                                                restore_best_weights=True)#was F
                 ind = np.arange(X.shape[0])
                 if(seeds):
                     np.random.seed(seeds[2])
@@ -98,7 +83,7 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
                 hist = classifier.fit(x=X[ind,:], 
                                       y=Y[ind], 
                                       epochs=cls_eps, 
-                                      verbose=False )
+                                      verbose=False)
             
             hists[i-1,:len(hist.history['loss'])]= hist.history['loss']
             auc_hists[i-1,:len(hist.history['auc'])]= hist.history['auc']
@@ -133,7 +118,7 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
 
 
 
-def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC'):
+def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
     if(seeds):
         random_state = seeds[0]
@@ -150,8 +135,9 @@ def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num
     for test, train in rkf.split(U):
         
         i = i + 1
-        print('')
-        print(str(i) + '/' + str(N*k) + ' itterations')
+        if(verbose!=0):
+            print('')
+            print(str(i) + '/' + str(N*k) + ' itterations')
 
         X = np.vstack([U[train,:], P])
         Y = np.concatenate([np.zeros([len(train)]),
@@ -169,7 +155,6 @@ def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num
             np.random.seed(seeds[2])
         np.random.shuffle(ind)
 
-        print("LR: " + str(puLR))
         auc = tf.keras.metrics.AUC(curve='PR', name='auc')
         classifier.compile(optimizer = tf.optimizers.Adam(learning_rate=puLR),
                            loss = 'binary_crossentropy',

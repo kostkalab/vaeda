@@ -20,7 +20,7 @@ from .mk_doublets import sim_inflate
 from .cluster import cluster, fast_cluster
 
 
-def vaeda(X, save_dir='',
+def vaeda(X, save_dir='', verbose=0,
           gene_thresh=.01, num_hvgs=2000,
           pca_comp=30, quant=0.25,
           enc_sze=5, max_eps_vae=1000, pat_vae=20, LR_vae=1e-3, clust_weight=20000, rate=-0.75,
@@ -40,7 +40,8 @@ def vaeda(X, save_dir='',
     npz_sim  = pl.Path(npz_sim_path)
     
     if (npz_sim.exists() & use_old):
-        print('loading in simulated doublets')
+        if(verbose!=0):
+            print('loading in simulated doublets')
         
         dat_sim = scs.load_npz(npz_sim)
         sim_ind = np.load(sim_ind_path)
@@ -49,7 +50,8 @@ def vaeda(X, save_dir='',
         Xs = scs.csr_matrix(dat_sim).toarray()
         
     else:
-        print('generating simulated doublets')        
+        if(verbose!=0):
+            print('generating simulated doublets')        
         Xs, ind1, ind2 = sim_inflate(X)        
         dat_sim = scs.csr_matrix(Xs) 
         
@@ -168,13 +170,15 @@ def vaeda(X, save_dir='',
     vae_path_real = save_dir + 'embedding_real.npy'
     vae_path_sim = save_dir + 'embedding_sim.npy'
     if (pl.Path(vae_path_real).exists() & pl.Path(vae_path_sim).exists() & (use_old)):
-        print('using existing encoding')
+        if(verbose!=0):
+            print('using existing encoding')
         encoding_real = np.load(vae_path_real)
         encoding_sim = np.load(vae_path_sim)
         encoding = np.vstack([encoding_real, encoding_sim])
         made_new=False
     else:
-        print('generating VAE encoding')
+        if(verbose!=0):
+            print('generating VAE encoding')
         made_new=True
         
         if(reproducable):
@@ -185,7 +189,7 @@ def vaeda(X, save_dir='',
                                                     mode = 'min',
                                                     min_delta=0, 
                                                     patience=pat_vae, 
-                                                    verbose=True, 
+                                                    verbose=verbose, 
                                                     restore_best_weights=False)
 
         def scheduler(epoch, lr):
@@ -201,7 +205,8 @@ def vaeda(X, save_dir='',
                        validation_data=([X_test], [X_test, clust_test]),
                        epochs=max_eps_vae, 
                        use_multiprocessing=True,
-                       callbacks=[callback, callback2])
+                       callbacks=[callback, callback2],
+                       verbose=verbose)
 
         encoder = vae.get_layer('encoder')
         if(reproducable):
@@ -227,7 +232,8 @@ def vaeda(X, save_dir='',
     encoding = np.vstack([knn_feature,encoding.T]).T
     
     #PU BAGGING
-    print('starting PU Learning')
+    if(verbose!=0):
+        print('starting PU Learning')
     U = encoding[Y==0,:]
     P = encoding[Y==1,:]
 
@@ -237,9 +243,9 @@ def vaeda(X, save_dir='',
         k=2
     
     if(reproducable):
-        hist = epoch_PU(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU)
+        hist = epoch_PU(U, P, k, N, 250, seeds=seeds[3:], puLR=LR_PU, verbose=verbose)
     else:
-        hist = epoch_PU(U, P, k, N, 250, puLR=LR_PU)
+        hist = epoch_PU(U, P, k, N, 250, puLR=LR_PU, verbose=verbose)
             
     y=np.log(hist.history['loss'])
     x=np.arange(len(y))
@@ -265,9 +271,9 @@ def vaeda(X, save_dir='',
         knee = 250
     
     if(reproducable):
-        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, seeds=seeds[3:], puLR=LR_PU)
+        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, seeds=seeds[3:], puLR=LR_PU, verbose=verbose)
     else:
-        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, puLR=LR_PU)
+        preds, preds_on_P, hists, _, _, _ = PU(U, P, k, N, knee, puLR=LR_PU, verbose=verbose)
 
     if(len(save_dir)>0):
         np.save(save_dir + 'scores.npy', preds)
@@ -310,7 +316,8 @@ def vaeda(X, save_dir='',
     calls = np.full(len(preds), 'singlet')
     calls[call_mask] = 'doublet'
     if(len(save_dir)>0):
-        print('saving calls')
+        if(verbose!=0):
+            print('saving calls')
         np.save(save_dir + 'doublet_calls.npy', calls)
     
     return preds, preds_on_P, calls, encoding_keep, knn_feature
