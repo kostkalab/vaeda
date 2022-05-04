@@ -105,6 +105,7 @@ def vaeda(X, save_dir='', verbose=0,
     quantile = np.quantile(knn_feature[Y==1], quant)
     num = np.sum(knn_feature[Y==0]>=quantile)
     min_num = int(np.round((sum(Y==0) *0.05)))
+    min_num = int(np.max(min_num, 1))
     num = np.max([min_num, num])
     estimated_doub_frac = num / sum(Y==0)
     estimated_doub_num = num
@@ -189,7 +190,7 @@ def vaeda(X, save_dir='', verbose=0,
                                                     mode = 'min',
                                                     min_delta=0, 
                                                     patience=pat_vae, 
-                                                    verbose=verbose, 
+                                                    verbose=0, 
                                                     restore_best_weights=False)
 
         def scheduler(epoch, lr):
