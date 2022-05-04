@@ -105,8 +105,7 @@ def vaeda(X, save_dir='', verbose=0,
     quantile = np.quantile(knn_feature[Y==1], quant)
     num = np.sum(knn_feature[Y==0]>=quantile)
     min_num = int(np.round((sum(Y==0) *0.05)))
-    min_num = int(np.max(min_num, 1))
-    num = np.max([min_num, num])
+    num = np.max([min_num, num, 1])
     estimated_doub_frac = num / sum(Y==0)
     estimated_doub_num = num
     
