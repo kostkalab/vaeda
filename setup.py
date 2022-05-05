@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vaeda",
-    version="0.0.24",
+    version="0.0.29",
     author="Hannah Schriever",
     author_email="hcs31@pitt.edu",
     packages=["vaeda"],

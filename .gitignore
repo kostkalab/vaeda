@@ -5,3 +5,4 @@ dist
 vaeda.egg-info
 build
 vaeda/__pycache__/
+*.txt
