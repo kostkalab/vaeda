@@ -22,7 +22,7 @@ from .cluster import cluster, fast_cluster
 
 
 
-def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
+def vaeda(adata, layer=None, filter_genes=True, verbose=0, save_dir=None,
           gene_thresh=.01, num_hvgs=2000,
           pca_comp=30, quant=0.25,
           enc_sze=5, max_eps_vae=1000, pat_vae=20, LR_vae=1e-3, clust_weight=20000, rate=-0.75,
@@ -35,7 +35,9 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     adata: anndata object
         raw counts stored in adata.X
     filter_genes: bool, optional
-        if True, vaeda will select the 2000 most variable genes. if False, no gene filtering occurs. If set to false, it is recomended that genes are filtered before calling vaeda. (default is True)
+        if True, vaeda will select the 2000 most variable genes. if False, no gene filtering occurs. If set to false, it is recomended that genes are filtered before calling vaeda (default is True)
+    layer: str, optional
+        If provided, use adata.layers[layer] for expression values instead of adata.X
     verbose: 'auto', 0, 1, or 2, optional
         verbosity argument passed to tensorflow model.fit functions. (default is 0)
     save_dir: str, optional
@@ -51,7 +53,7 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     enc_sze: int, optional
         Size of the encoding leaned by vaeda. (default is 5)
     max_eps_vae: int, optional
-        Maximum number of epochs used to train the variational auto encoder. Specifically, the vae will train until teh early stopping criteria is met or max_eps_vae, whichever is first. (default is 1000)
+        Maximum number of epochs used to train the variational auto encoder. Specifically, the vae will train until teh early stopping criteria is met or max_eps_vae, whichever is first (default is 1000)
     pat_vae: int, optional
         Number of epochs with no improvement after which VAE training will be stopped. (default is 20)
     LR_vae: float, optional
@@ -78,11 +80,7 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     Returns
     -------
     anndata
-        the origional anndata object with the encoding stored in adata.obsm['vaeda_embedding'] and the 
-        adata.obs['vaeda_scores'] = preds
-    adata.obs['vaeda_calls']  = calls
-    adata.obsm['vaeda_embedding'] = encoding[Y==0,:]
-        doublet probabilities and calls.
+        the origional anndata object with the encoding stored in adata.obsm['vaeda_embedding'] and the doublet scores and calls stored in adata.obs['vaeda_scores'] and adata.obs['vaeda_calls'] respectively.
     """
     
     
@@ -95,7 +93,10 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     if (save_dir is None):
         use_old = False
         
-    X = np.array(adata.X.todense())    
+    if (layer is None):
+        X = np.array(adata.X.todense())
+    else:
+        X = np.array((adata.layers[layer]).todense())
     
     #######################################################
     ######################### SIM #########################
