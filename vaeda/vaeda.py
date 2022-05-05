@@ -99,17 +99,19 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     #    clusters = adata.obs[cluster_name]
         
     X = np.array(adata.X.todense())    
-        
     
     #######################################################
     ######################### SIM #########################
     #######################################################
-    npz_sim_path  = save_dir + 'sim_doubs.npz'
-    sim_ind_path  = save_dir + 'sim_ind.npy'
+    old_sim = False
+    if (save_dir is not None):
+        npz_sim_path  = save_dir + 'sim_doubs.npz'
+        sim_ind_path  = save_dir + 'sim_ind.npy'
+        npz_sim  = pl.Path(npz_sim_path)
+        if (npz_sim.exists()):
+            old_sim = True
     
-    npz_sim  = pl.Path(npz_sim_path)
-    
-    if (npz_sim.exists() & use_old):
+    if(old_sim & use_old):#if old sim doubs exist and we want to use them...
         if(verbose!=0):
             print('loading in simulated doublets')
         
@@ -119,16 +121,17 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
         ind2 = sim_ind[1,:]
         Xs = scs.csr_matrix(dat_sim).toarray()
         
-    else:
+    else: #otherwise, make new
         if(verbose!=0):
             print('generating simulated doublets')        
         Xs, ind1, ind2 = sim_inflate(X)        
         dat_sim = scs.csr_matrix(Xs) 
         
-        if(save_dir is not None):
+        if(save_dir is not None):#if we are saving, then save
             scs.save_npz(npz_sim_path,dat_sim) 
             np.save(sim_ind_path, np.vstack([ind1,ind2]))
 
+            
     Y = np.concatenate([np.zeros(X.shape[0]), np.ones(Xs.shape[0])])
     X = np.vstack([X,Xs])
     
@@ -234,16 +237,21 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     ngens = X.shape[1]
     
     #VAE
-    vae_path_real = save_dir + 'embedding_real.npy'
-    vae_path_sim = save_dir + 'embedding_sim.npy'
-    if (pl.Path(vae_path_real).exists() & pl.Path(vae_path_sim).exists() & (use_old)):
+    old_VAE = False
+    if (save_dir is not None):
+        vae_path_real = save_dir + 'embedding_real.npy'
+        vae_path_sim = save_dir + 'embedding_sim.npy'
+        if (pl.Path(vae_path_real).exists() & pl.Path(vae_path_sim).exists()):
+            old_VAE = True
+    
+    if (old_VAE & use_old): #if the old files exist and we want to use them...
         if(verbose!=0):
             print('using existing encoding')
         encoding_real = np.load(vae_path_real)
         encoding_sim = np.load(vae_path_sim)
         encoding = np.vstack([encoding_real, encoding_sim])
         made_new=False
-    else:
+    else:#otherwise, make new
         if(verbose!=0):
             print('generating VAE encoding')
         made_new=True
