@@ -25,6 +25,7 @@ dist/vaeda-0.0.8-py3-none-any.whl
 dist/vaeda-0.0.8.tar.gz
 dist/vaeda-0.0.9-py3-none-any.whl
 dist/vaeda-0.0.9.tar.gz
+doc/vaeda_scanpy-pbmc3k-tutorial.ipynb
 vaeda/PU.py
 vaeda/__init__.py
 vaeda/classifier.py
