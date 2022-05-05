@@ -95,9 +95,6 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     if (save_dir is None):
         use_old = False
         
-    #if(cluster_name is not None):
-    #    clusters = adata.obs[cluster_name]
-        
     X = np.array(adata.X.todense())    
     
     #######################################################
