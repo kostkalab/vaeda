@@ -88,9 +88,9 @@ def vaeda(adata, filter_genes=True, verbose=0, save_dir=None,
     
     if(seed is not None):
         np.random.seed(seed)
-        seeds = np.random.randint(0, high=sys.maxsize, size=13)
+        seeds = np.random.randint(0, high=(2**32 - 1), size=13)
     else:
-        seeds = np.random.randint(0, high=sys.maxsize, size=13)
+        seeds = np.random.randint(0, high=(2**32 - 1), size=13)
         
     if (save_dir is None):
         use_old = False
