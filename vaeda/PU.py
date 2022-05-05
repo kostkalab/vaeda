@@ -8,13 +8,10 @@ from sklearn.model_selection import train_test_split
 
 from .classifier import define_classifier
 
-def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
+def PU(U, P, k, N, cls_eps, clss='NN', seeds, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
-    if (seeds):
-        random_state = seeds[0]
-        rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
-    else:
-        rkf = RepeatedKFold(n_splits=k, n_repeats=N)
+    random_state = seeds[0]
+    rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
 
     preds= np.zeros([U.shape[0]])
     preds_on_P = np.zeros([P.shape[0]])
@@ -42,14 +39,12 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
         if (clss=='NN'):
             #DEFINE MODEL
             np.random.seed(1)
-            if(seeds):
-                tf.random.set_seed(seeds[1])
+            tf.random.set_seed(seeds[1])
             classifier = define_classifier(X.shape[1], num_layers=num_layers)
 
             #shuffle training data
             ind = np.arange(X.shape[0])
-            if(seeds):
-                np.random.seed(seeds[2])
+            np.random.seed(seeds[2])
             np.random.shuffle(ind)
             
             auc = tf.keras.metrics.AUC(curve='PR', name='auc')
@@ -60,8 +55,7 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
             
             if ((X.shape[0] * 0.1) >= 50 ):
 
-                if(seeds):
-                    tf.random.set_seed(seeds[3])
+                tf.random.set_seed(seeds[3])
                 hist = classifier.fit(x=X,
                                       y=Y,
                                       epochs=cls_eps, 
@@ -71,12 +65,10 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
             else:
                     
                 ind = np.arange(X.shape[0])
-                if(seeds):
-                    np.random.seed(seeds[2])
+                np.random.seed(seeds[2])
                 np.random.shuffle(ind)
                 
-                if(seeds):
-                    tf.random.set_seed(seeds[3])
+                tf.random.set_seed(seeds[3])
                 hist = classifier.fit(x=X[ind,:], 
                                       y=Y[ind], 
                                       epochs=cls_eps, 
@@ -85,11 +77,9 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
             hists[i-1,:len(hist.history['loss'])]= hist.history['loss']
             auc_hists[i-1,:len(hist.history['auc'])]= hist.history['auc']
             
-            if(seeds):
-                tf.random.set_seed(seeds[4])
+            tf.random.set_seed(seeds[3])#was seeds[4]
             preds[test] = preds[test] + np.array(classifier(x)).flatten()
-            if(seeds):
-                tf.random.set_seed(seeds[4])
+            tf.random.set_seed(seeds[3])
             preds_on_P = preds_on_P + np.array(classifier(P)).flatten()
 
             
@@ -115,13 +105,10 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layer
 
 
 
-def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
+def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
-    if(seeds):
-        random_state = seeds[0]
-        rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
-    else:
-        rkf = RepeatedKFold(n_splits=k, n_repeats=N)
+    random_state = seeds[0]
+    rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
         
     preds= np.zeros([U.shape[0]])
     preds_on_P = np.zeros([P.shape[0]])
@@ -141,15 +128,13 @@ def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num
                                np.ones([P.shape[0]])])
 
         #DEFINE MODEL
-        if(seeds):
-            np.random.seed(1)
-            tf.random.set_seed(seeds[1])
+        np.random.seed(1)
+        tf.random.set_seed(seeds[1])
         classifier = define_classifier(X.shape[1], num_layers=num_layers)
 
         #shuffle training data
         ind = np.arange(X.shape[0])
-        if(seeds):
-            np.random.seed(seeds[2])
+        np.random.seed(seeds[2])
         np.random.shuffle(ind)
 
         auc = tf.keras.metrics.AUC(curve='PR', name='auc')
@@ -157,8 +142,7 @@ def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds=None, puPat=5, puLR=1e-3, num
                            loss = 'binary_crossentropy',
                            metrics=[auc])
 
-        if(seeds):
-            tf.random.set_seed(seeds[3])
+        tf.random.set_seed(seeds[3])
         hist = classifier.fit(x=X,
                               y=Y,
                               epochs=cls_eps, 
