@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from .classifier import define_classifier
 
-def PU(U, P, k, N, cls_eps, clss='NN', seeds, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
+def PU(U, P, k, N, cls_eps, seeds, clss='NN', puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
     random_state = seeds[0]
     rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
@@ -105,7 +105,7 @@ def PU(U, P, k, N, cls_eps, clss='NN', seeds, puPat=5, puLR=1e-3, num_layers=1, 
 
 
 
-def epoch_PU(U, P, k, N, cls_eps, clss='NN', seeds, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
+def epoch_PU(U, P, k, N, cls_eps, seeds, puPat=5, puLR=1e-3, num_layers=1, stop_metric='ValAUC', verbose=0):
     
     random_state = seeds[0]
     rkf = RepeatedKFold(n_splits=k, n_repeats=N, random_state=random_state)
