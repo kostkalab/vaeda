@@ -1,0 +1,7 @@
+test.py
+data
+data/*
+dist
+vaeda.egg-info
+build
+vaeda/__pycache__/
