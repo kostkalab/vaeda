@@ -33,7 +33,7 @@ Where:
 
 #### More detailed example
 
-For a more detailed and accessible example, see ```./doc/vaeda_scanpy-pbmc3k-tutorial.ipynb```, where we modified a tutorial from ```scanpy``` [(https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html)](https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html) to illustrate how to use ```vaeda``` for doublet annotation.
+For a more detailed and accessible example, see [```./doc/vaeda_scanpy-pbmc3k-tutorial.ipynb```](https://github.com/kostkalab/vaeda/blob/main/doc/vaeda_scanpy-pbmc3k-tutorial.ipynb), where we modified a tutorial from ```scanpy``` [(https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html)](https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html) to illustrate how to use ```vaeda``` for doublet annotation.
 
 
 #### Other doublet detection tools
