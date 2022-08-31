@@ -27,6 +27,7 @@ def vaeda(adata, layer=None, filter_genes=True, verbose=0, save_dir=None,
           pca_comp=30, quant=0.25,
           enc_sze=5, max_eps_vae=1000, pat_vae=20, LR_vae=1e-3, clust_weight=20000, rate=-0.75,
           N=1, k_mult=2, max_eps_PU=250, LR_PU=1e-3,
+          mu=None,
           remove_homos=True, use_old=False,
           seed=None):
     """
@@ -70,6 +71,7 @@ def vaeda(adata, layer=None, filter_genes=True, verbose=0, save_dir=None,
         Number of epochs to train the epoch selection round of PU learning. (default is 250)
     LR_PU: float, optional
         Learning rate for the doublet classifier. (default is 1e-3)
+    mu: Expected number of doublets used in the Log Likelihood expression in the cost function that determines the threshold for doublet calling (see manuscript). If None, we use the heuristic mu=#input_cells^2 / 10^5. (default is None)
     remove_homos: bool, optional
         If True, simulated doublets made from cells of the same cluster are removed before training. If False, simulated doublets made from cells of the same cluster are left in. (default is True)
     use_old: bool, optional
@@ -353,8 +355,14 @@ def vaeda(adata, layer=None, filter_genes=True, verbose=0, save_dir=None,
     thresholds = np.arange(minimum,maximum,0.001)
     
     n = len(preds)
-    dbr = n/10**5
-    dbl_expected = n*dbr
+    
+    if(mu is None):
+        dbr = n/10**5
+        dbl_expected = n*dbr
+    else:
+        dbr = mu/n
+        dbl_expected = mu
+    
     dbr_sd = np.sqrt(n*dbr*(1-dbr))
     
     FNR = []
