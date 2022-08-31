@@ -14,7 +14,7 @@ pip3 install --upgrade tensorflow==2.8.0
 pip3 install --upgrade tensorflow-probability==0.16.0
 pip3 install 'scanpy[leiden]'==1.8.0
 pip3 install typing-extensions==3.7.4 absl-py==0.10 six==1.15.0 wrapt==1.12.1 xlrd==1.2.0
-pip3 install -i https://test.pypi.org/simple/ vaeda==0.0.29
+pip3 install -i https://test.pypi.org/simple/ vaeda==0.0.30
 ```
 
 #### Quick Start
