@@ -28,8 +28,8 @@ def sim_inflate(X, frac_doublets=None, seeds=[1234, 15232, 3060309]):
     
     inflated_sze = np.zeros([len(lib_sze)])
     for i, low in enumerate(lib_sze): 
-        random.seed(seeds[2])
-        inflated_sze[i] = random.choice(lib_sze[lib_sze>=low])
+        g = np.random.Generator(np.random.PCG64(seeds[2]))
+        inflated_sze[i] = g.choice(lib_sze[lib_sze>=low])
     
     ls = np.sum(res, axis=1)
     sf = inflated_sze / ls
