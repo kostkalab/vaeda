@@ -1,0 +1,167 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vaeda"
+version = "0.2.0"
+description = "A computational tool for annotating doublets in scRNAseq data."
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Hannah Schriever", email = "hcs31@pitt.edu" }]
+license = { text = "MIT" }
+
+# Core dependencies - installed by default
+dependencies = [
+    "anndata>=0.12.0",
+    "kneed>=0.8.5",
+    "loguru>=0.7.0",
+    "numpy>=2.1.0",
+    "rich>=13.0",
+    "scanpy[leiden]>=1.11.0",
+    "scikit-learn>=1.7",
+    "scipy>1.12,<=1.15.3",
+    "torch>=2.6.0",
+]
+
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+repository = "https://github.com/kostkalab/vaeda"
+
+# =============================================================================
+# Dependency Groups (PEP 735 - supported by uv)
+# =============================================================================
+# Usage:
+#   Core only:     uv sync
+#   With dev:      uv sync --group dev
+#   All groups:    uv sync --all-groups
+
+[dependency-groups]
+# Development tools - linting, formatting, type checking, testing
+dev = [
+    "ruff>=0.13.3",
+    "mypy>=1.15",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "pytest-xdist>=3.6",       # parallel test execution
+    "hypothesis>=6.130",       # property-based testing
+    "pre-commit>=4.1",
+    "ty>=0.0.1a21",
+    "ipython>=9.10.0",
+    "requests>=2.32.5",
+]
+
+# Documentation (optional, extend as needed)
+docs = [
+    "sphinx>=8.0",
+    "sphinx-rtd-theme>=3.0",
+    "myst-parser>=4.0",
+]
+
+# =============================================================================
+# Tool Configuration
+# =============================================================================
+
+[tool.ruff]
+line-length = 90
+target-version = "py312"
+preview = true
+exclude = [
+    ".git",
+    ".hg",
+    ".jj",
+    "__pycache__",
+    "_bin/*",
+    "_build/*",
+    "_ig_fbcode_wheel/*",
+    "buck-out/*",
+    "third-party-buck/*",
+    "third-party2/*",
+    "dist",
+    ".venv",
+    ".nox",
+    ".mypy_cache",
+    ".pytype",
+    ".svn",
+    "__pypackages__",
+]
+extend-exclude = ["*.ipynb"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "NPY",    # numpy-specific rules
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["vaeda"]
+
+[tool.ruff.lint.flake8-implicit-str-concat]
+allow-multiline = false
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "-q",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.coverage.run]
+source = ["vaeda"]
+branch = true
+omit = ["tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

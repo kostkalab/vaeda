@@ -1,0 +1,42 @@
+services:
+  # Production - minimal, core dependencies only
+  prod:
+    build:
+      context: .
+      target: production
+    image: vaeda:prod
+    volumes:
+      - ./data:/usr/vaeda/data:ro  # read-only data access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Development - core + dev tools
+  dev:
+    build:
+      context: .
+      target: development
+    image: vaeda:dev
+    volumes:
+      - .:/usr/vaeda
+      - uv-cache:/root/.cache/uv
+    ports:
+      - "8080:8080"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  uv-cache:

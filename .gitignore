@@ -6,5 +6,11 @@ vaeda.egg-info
 build
 vaeda/__pycache__/
 *.txt
+*.tsv
+*.mtx
 cache
 doc/.ipynb_checkpoints/
+dist/
+.ruff_cache/
+.ipynb_checkpoints/
+**/__pycache__
